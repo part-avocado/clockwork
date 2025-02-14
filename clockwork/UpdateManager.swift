@@ -143,7 +143,6 @@ class UpdateManager: ObservableObject {
         guard let downloadedAppPath = downloadedAppPath else { return }
         
         let currentAppPath = Bundle.main.bundlePath
-        let fileManager = FileManager.default
         let parentDirectory = (currentAppPath as NSString).deletingLastPathComponent
         
         // Create an AppleScript to handle the update after the app quits
@@ -168,4 +167,4 @@ class UpdateManager: ObservableObject {
     deinit {
         checkTimer?.invalidate()
     }
-} 
+}

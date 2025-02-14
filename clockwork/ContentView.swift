@@ -148,21 +148,28 @@ struct ContentView: View {
                             ModernButton(title: "Connect to Spotify") {
                                 spotifyManager.signIn()
                             }
-                        } else if let track = spotifyManager.currentTrack, spotifyManager.isPlaying {
-                            Text(track.title)
-                                .font(.system(size: 24, weight: .medium))
-                                .foregroundColor(.white)
-                                .multilineTextAlignment(.center)
-                            Text("by \(track.artist)")
-                                .font(.system(size: 20, weight: .regular))
-                                .foregroundColor(.white.opacity(0.8))
-                                .multilineTextAlignment(.center)
+                        } else if let media = spotifyManager.currentTrack, spotifyManager.isPlaying {
+                            HStack(spacing: 8) {
+                                // Show different icon based on media type
+                                Image(systemName: spotifyManager.mediaType == .episode ? "mic" : "music.note.list")
+                                    .foregroundColor(.white)
+                                    .font(.system(size: 20))
+                                Text("\(media.title) • \(media.subtitle)")
+                                    .font(.system(size: 24, weight: .medium))
+                                    .foregroundColor(.white.opacity(0.85))
+                                    .multilineTextAlignment(.center)
+                            }
                         } else {
-                            Text("Play some music on Spotify for it to show up here")
-                                .font(.system(size: 20, weight: .regular))
-                                .foregroundColor(.white.opacity(0.8))
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal)
+                            HStack(spacing: 8) {
+                                Image(systemName: "music.note.list")
+                                    .foregroundColor(.white.opacity(0.8))
+                                    .font(.system(size: 20))
+                                Text("Play some music on Spotify for it to show up here")
+                                    .font(.system(size: 20, weight: .regular))
+                                    .foregroundColor(.white.opacity(0.8))
+                                    .multilineTextAlignment(.center)
+                            }
+                            .padding(.horizontal)
                         }
                     }
                     .frame(maxWidth: .infinity)
@@ -178,15 +185,15 @@ struct ContentView: View {
                             if showSettings {
                                 SettingsMenu(spotifyManager: spotifyManager,
                                            settingsManager: settingsManager)
-                                    .offset(y: -140) // Move menu up, but keep gear icon in place
+                                    .offset(y: -50) // Reduced offset to be closer to the gear icon
                             }
                             SettingsButton(showSettings: $showSettings)
-                                .offset(y: -8) // Slight offset to account for padding
                         }
                         .opacity(isMouseInBottomRight(geometry: geometry) || showSettings ? 1 : 0)
                         .animation(.easeInOut(duration: 0.2), value: isMouseInBottomRight(geometry: geometry))
                     }
-                    .padding(.bottom, 8) // Add consistent bottom padding
+                    .padding(.bottom, 16)
+                    .padding(.trailing, 16)
                 }
                 
                 // Update Button and Error Message
@@ -255,10 +262,10 @@ struct TimeDisplayView: View {
     var showSeconds: Bool
     var use24HourTime: Bool
     
-    // Use a more precise timer with a shorter interval
     private let timer = Timer.publish(every: 0.1, on: RunLoop.main, in: .common).autoconnect()
     private let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
         return formatter
     }()
     
@@ -266,12 +273,11 @@ struct TimeDisplayView: View {
         Text(timeString)
             .onReceive(timer) { _ in
                 let newTime = Date()
-                // Only update if the formatted string would be different
                 if formatDate(newTime) != formatDate(currentTime) {
                     currentTime = newTime
                 }
             }
-            .id(timeString) // Force view update when string changes
+            .id("\(use24HourTime)_\(showSeconds)_\(timeString)") // Force update when format changes
     }
     
     private var timeString: String {
