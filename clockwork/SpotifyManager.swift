@@ -2,17 +2,6 @@ import Foundation
 import SwiftUI
 import Combine
 
-enum MediaType {
-    case none
-    case track
-    case episode
-}
-
-struct MediaInfo {
-    let title: String
-    let subtitle: String // artist for tracks, show name for episodes
-}
-
 class SpotifyManager: ObservableObject {
     static let clientId = "8744406d02204ba4801b793d06399194"
     static let clientSecret = "f11433c902de44399aab43ac38e35ceb"
