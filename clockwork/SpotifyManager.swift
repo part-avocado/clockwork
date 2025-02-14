@@ -8,9 +8,8 @@ class SpotifyManager: ObservableObject {
     static let redirectUri = "clockwork://spotifyauth"
     
     @Published var isAuthenticated = false
-    @Published var currentTrack: MediaInfo?
+    @Published var currentTrack: (title: String, artist: String)?
     @Published var isPlaying = false
-    @Published var mediaType: MediaType = .none
     
     private var authToken: String?
     private var refreshToken: String?
@@ -217,7 +216,6 @@ class SpotifyManager: ObservableObject {
                         print("No active playback found")
                         self.currentTrack = nil
                         self.isPlaying = false
-                        self.mediaType = .none
                     case 401:
                         // Unauthorized - token expired
                         print("Token expired, refreshing...")
@@ -231,6 +229,7 @@ class SpotifyManager: ObservableObject {
                         
                         do {
                             let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+                            print("Full response: \(String(describing: json))")
                             
                             // First check if we're actually playing something
                             let isPlaying = json?["is_playing"] as? Bool ?? false
@@ -239,42 +238,40 @@ class SpotifyManager: ObservableObject {
                             if !isPlaying {
                                 print("Playback is paused")
                                 self.currentTrack = nil
-                                self.mediaType = .none
                                 return
+                            }
+                            
+                            // Log device information
+                            if let device = json?["device"] as? [String: Any] {
+                                print("Active device: \(device["name"] as? String ?? "unknown") (type: \(device["type"] as? String ?? "unknown"))")
                             }
                             
                             // Check the type of content playing
                             if let currentlyPlayingType = json?["currently_playing_type"] as? String {
                                 print("Content type: \(currentlyPlayingType)")
+                            }
+                            
+                            // Try to get track information
+                            if let item = json?["item"] as? [String: Any] {
+                                print("Track data available: \(item.keys.joined(separator: ", "))")
                                 
-                                if let item = json?["item"] as? [String: Any] {
-                                    switch currentlyPlayingType {
-                                    case "track":
-                                        if let name = item["name"] as? String,
-                                           let artists = item["artists"] as? [[String: Any]],
-                                           let artistName = artists.first?["name"] as? String {
-                                            print("Found track: \(name) by \(artistName)")
-                                            self.currentTrack = MediaInfo(title: name, subtitle: artistName)
-                                            self.mediaType = .track
-                                        }
-                                    case "episode":
-                                        if let name = item["name"] as? String,
-                                           let show = item["show"] as? [String: Any],
-                                           let showName = show["name"] as? String {
-                                            print("Found episode: \(name) from \(showName)")
-                                            self.currentTrack = MediaInfo(title: name, subtitle: showName)
-                                            self.mediaType = .episode
-                                        }
-                                    default:
-                                        print("Unknown content type: \(currentlyPlayingType)")
-                                        self.currentTrack = nil
-                                        self.mediaType = .none
-                                    }
+                                if let name = item["name"] as? String,
+                                   let artists = item["artists"] as? [[String: Any]],
+                                   let artistName = artists.first?["name"] as? String {
+                                    print("Found track: \(name) by \(artistName)")
+                                    self.currentTrack = (title: name, artist: artistName)
                                 } else {
-                                    print("No item field in response")
-                                    self.currentTrack = nil
-                                    self.mediaType = .none
+                                    print("Could not extract track name or artist from item")
+                                    if let name = item["name"] {
+                                        print("Track name type: \(type(of: name))")
+                                    }
+                                    if let artists = item["artists"] {
+                                        print("Artists type: \(type(of: artists))")
+                                    }
                                 }
+                            } else {
+                                print("No item field in response")
+                                self.currentTrack = nil
                             }
                         } catch {
                             print("Error parsing Spotify response: \(error)")

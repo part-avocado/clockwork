@@ -148,13 +148,12 @@ struct ContentView: View {
                             ModernButton(title: "Connect to Spotify") {
                                 spotifyManager.signIn()
                             }
-                        } else if let media = spotifyManager.currentTrack, spotifyManager.isPlaying {
+                        } else if let track = spotifyManager.currentTrack, spotifyManager.isPlaying {
                             HStack(spacing: 8) {
-                                // Show different icon based on media type
-                                Image(systemName: spotifyManager.mediaType == .episode ? "mic" : "music.note.list")
+                                Image(systemName: "music.note.list")
                                     .foregroundColor(.white)
                                     .font(.system(size: 20))
-                                Text("\(media.title) • \(media.subtitle)")
+                                Text("\(track.title) • \(track.artist)")
                                     .font(.system(size: 24, weight: .medium))
                                     .foregroundColor(.white.opacity(0.85))
                                     .multilineTextAlignment(.center)
