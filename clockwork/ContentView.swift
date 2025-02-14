@@ -174,17 +174,19 @@ struct ContentView: View {
                     Spacer()
                     HStack {
                         Spacer()
-                        ZStack(alignment: .topTrailing) {
+                        ZStack(alignment: .bottomTrailing) {
                             if showSettings {
                                 SettingsMenu(spotifyManager: spotifyManager,
                                            settingsManager: settingsManager)
-                                    .offset(y: -120) // Move menu up above the gear icon
+                                    .offset(y: -140) // Move menu up, but keep gear icon in place
                             }
                             SettingsButton(showSettings: $showSettings)
+                                .offset(y: -8) // Slight offset to account for padding
                         }
                         .opacity(isMouseInBottomRight(geometry: geometry) || showSettings ? 1 : 0)
                         .animation(.easeInOut(duration: 0.2), value: isMouseInBottomRight(geometry: geometry))
                     }
+                    .padding(.bottom, 8) // Add consistent bottom padding
                 }
                 
                 // Update Button and Error Message
@@ -253,21 +255,34 @@ struct TimeDisplayView: View {
     var showSeconds: Bool
     var use24HourTime: Bool
     
-    private let timer = Timer.publish(every: 0.5, on: RunLoop.main, in: .common).autoconnect()
+    // Use a more precise timer with a shorter interval
+    private let timer = Timer.publish(every: 0.1, on: RunLoop.main, in: .common).autoconnect()
+    private let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        return formatter
+    }()
     
     var body: some View {
         Text(timeString)
             .onReceive(timer) { _ in
-                currentTime = Date()
+                let newTime = Date()
+                // Only update if the formatted string would be different
+                if formatDate(newTime) != formatDate(currentTime) {
+                    currentTime = newTime
+                }
             }
+            .id(timeString) // Force view update when string changes
     }
     
     private var timeString: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = use24HourTime ? 
+        formatDate(currentTime)
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        dateFormatter.dateFormat = use24HourTime ? 
             (showSeconds ? "HH:mm:ss" : "HH:mm") :
             (showSeconds ? "h:mm:ss a" : "h:mm a")
-        return formatter.string(from: currentTime)
+        return dateFormatter.string(from: date)
     }
 }
 

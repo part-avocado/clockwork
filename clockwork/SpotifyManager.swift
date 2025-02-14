@@ -90,25 +90,47 @@ class SpotifyManager: ObservableObject {
             .joined(separator: "&")
             .data(using: .utf8)
         
-        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
-            if let data = data,
-               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let accessToken = json["access_token"] as? String {
-                DispatchQueue.main.async {
-                    self?.authToken = accessToken
-                    self?.refreshToken = json["refresh_token"] as? String
-                    self?.isAuthenticated = true
+        let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            if let error = error {
+                print("Error exchanging code for token: \(error)")
+                return
+            }
+            
+            guard let data = data else {
+                print("No data received from token exchange")
+                return
+            }
+            
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                    if let error = json["error"] as? String {
+                        print("Spotify API error: \(error)")
+                        return
+                    }
                     
-                    // Store credentials
-                    UserDefaults.standard.set(accessToken, forKey: "SpotifyAuthToken")
-                    if let refreshToken = json["refresh_token"] as? String {
-                        UserDefaults.standard.set(refreshToken, forKey: "SpotifyRefreshToken")
+                    if let accessToken = json["access_token"] as? String {
+                        DispatchQueue.main.async {
+                            self?.authToken = accessToken
+                            self?.refreshToken = json["refresh_token"] as? String
+                            self?.isAuthenticated = true
+                            
+                            // Store credentials
+                            UserDefaults.standard.set(accessToken, forKey: "SpotifyAuthToken")
+                            if let refreshToken = json["refresh_token"] as? String {
+                                UserDefaults.standard.set(refreshToken, forKey: "SpotifyRefreshToken")
+                            }
+                            
+                            // Immediately fetch current playback state
+                            self?.updateNowPlaying()
+                        }
                     }
                 }
-            } else if let error = error {
-                print("Error exchanging code for token: \(error)")
+            } catch {
+                print("Error parsing token response: \(error)")
             }
-        }.resume()
+        }
+        
+        task.resume()
     }
     
     private func refreshAccessToken() {
