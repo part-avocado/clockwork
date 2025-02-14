@@ -254,7 +254,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 22025b129;
 				DEVELOPMENT_ASSET_PATHS = "\"clockwork/Preview Content\"";
 				DEVELOPMENT_TEAM = 6652MT33Z3;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -262,14 +262,14 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = clockwork/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = clockwork;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				MARKETING_VERSION = "1.3.2-prerelease3";
+				MARKETING_VERSION = "1.3.2-prerelease4";
 				PRODUCT_BUNDLE_IDENTIFIER = com.penguinstudios.clockwork;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -288,7 +288,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 22025b129;
 				DEVELOPMENT_ASSET_PATHS = "\"clockwork/Preview Content\"";
 				DEVELOPMENT_TEAM = 6652MT33Z3;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -296,14 +296,14 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = clockwork/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = clockwork;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				MARKETING_VERSION = 1.3.2;
+				MARKETING_VERSION = 1.3.2a;
 				PRODUCT_BUNDLE_IDENTIFIER = com.penguinstudios.clockwork;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

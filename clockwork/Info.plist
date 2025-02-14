@@ -2,28 +2,24 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>CFBundleURLTypes</key>
-    <array>
-        <dict>
-            <key>CFBundleURLName</key>
-            <string>com.penguinstudios.clockwork</string>
-            <key>CFBundleURLSchemes</key>
-            <array>
-                <string>clockwork</string>
-            </array>
-            <key>CFBundleTypeRole</key>
-            <string>Editor</string>
-        </dict>
-    </array>
-    <key>CFBundleShortVersionString</key>
-    <string>1.0.0</string>
-    <key>CFBundleVersion</key>
-    <string>1</string>
-    <key>LSApplicationCategoryType</key>
-    <string>public.app-category.entertainment</string>
-    <key>CFBundleIdentifier</key>
-    <string>com.penguinstudios.clockwork</string>
-    <key>LSMinimumSystemVersion</key>
-    <string>14.6</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.penguinstudios.clockwork</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>clockwork</string>
+			</array>
+		</dict>
+	</array>
+	<key>INIntentsSupported</key>
+	<array>
+		<string>spotifyauth</string>
+	</array>
+	<key>LSMinimumSystemVersion</key>
+	<string>14.6</string>
 </dict>
-</plist> 
+</plist>
