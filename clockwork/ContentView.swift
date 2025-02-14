@@ -35,8 +35,36 @@ struct ModernButton: View {
     }
 }
 
+struct UpdateButton: View {
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: "arrow.triangle.2.circlepath")
+                Text("Restart to update")
+            }
+            .font(.system(size: 14, weight: .medium))
+            .foregroundColor(.white)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(Color.blue.opacity(0.3))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                    )
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
+        .shadow(color: Color.black.opacity(0.2), radius: 6, x: 0, y: 3)
+    }
+}
+
 struct ContentView: View {
     @StateObject private var spotifyManager = SpotifyManager()
+    @StateObject private var updateManager = UpdateManager()
     @State private var currentTime = Date()
     @State private var isMouseHidden = false
     @State private var backgroundKey = UUID()
@@ -56,32 +84,68 @@ struct ContentView: View {
                         .foregroundColor(.white)
                     
                     // Spotify Section
-                    VStack {
+                    VStack(spacing: 10) {
                         if !spotifyManager.isAuthenticated {
                             ModernButton(title: "Connect to Spotify") {
                                 spotifyManager.signIn()
                             }
-                        } else if let track = spotifyManager.currentTrack, spotifyManager.isPlaying {
-                            Text("\(track.title)")
-                                .font(.system(size: 20))
-                                .foregroundColor(.white)
-                            Text("by \(track.artist)")
-                                .font(.system(size: 20))
-                                .foregroundColor(.white.opacity(0.8))
                         } else {
-                            Text("Play some music on Spotify for it to show up here")
-                                .font(.system(size: 20))
-                                .foregroundColor(.white.opacity(0.8))
+                            HStack {
+                                Spacer()
+                                Button(action: {
+                                    spotifyManager.signOut()
+                                }) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundColor(.white.opacity(0.6))
+                                        .font(.system(size: 16))
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                .padding(.trailing, 20)
+                            }
+                            
+                            if let track = spotifyManager.currentTrack, spotifyManager.isPlaying {
+                                Text(track.title)
+                                    .font(.system(size: 24, weight: .medium))
+                                    .foregroundColor(.white)
+                                    .multilineTextAlignment(.center)
+                                Text("by \(track.artist)")
+                                    .font(.system(size: 20, weight: .regular))
+                                    .foregroundColor(.white.opacity(0.8))
+                                    .multilineTextAlignment(.center)
+                            } else {
+                                Text("Play some music on Spotify for it to show up here")
+                                    .font(.system(size: 20, weight: .regular))
+                                    .foregroundColor(.white.opacity(0.8))
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal)
+                            }
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                
+                // Update Button
+                if updateManager.updateAvailable && updateManager.downloadComplete {
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            UpdateButton {
+                                updateManager.installUpdate()
+                            }
+                            .padding()
                         }
                     }
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .onReceive(timer) { input in
             currentTime = input
         }
         .onAppear {
+            updateManager.checkForUpdates()
+            
             NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
                 if event.modifierFlags.contains(.command) && event.keyCode == 15 { // CMD+R
                     backgroundKey = UUID()

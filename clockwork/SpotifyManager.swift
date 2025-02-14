@@ -14,9 +14,27 @@ class SpotifyManager: ObservableObject {
     private var authToken: String?
     private var refreshToken: String?
     private var timer: Timer?
+    private var cancellables = Set<AnyCancellable>()
     
     init() {
         setupTimer()
+        setupNotificationObserver()
+        
+        // Check if we have stored credentials
+        if let token = UserDefaults.standard.string(forKey: "SpotifyAuthToken") {
+            authToken = token
+            refreshToken = UserDefaults.standard.string(forKey: "SpotifyRefreshToken")
+            isAuthenticated = true
+        }
+    }
+    
+    private func setupNotificationObserver() {
+        NotificationCenter.default.publisher(for: NSNotification.Name("SpotifyCallback"))
+            .compactMap { $0.object as? URL }
+            .sink { [weak self] url in
+                self?.handleCallback(url: url)
+            }
+            .store(in: &cancellables)
     }
     
     private func setupTimer() {
@@ -31,7 +49,8 @@ class SpotifyManager: ObservableObject {
             "?client_id=\(SpotifyManager.clientId)" +
             "&response_type=code" +
             "&redirect_uri=\(SpotifyManager.redirectUri.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) ?? "")" +
-            "&scope=\(scope)"
+            "&scope=\(scope)" +
+            "&show_dialog=true"
         
         if let url = URL(string: authUrlString) {
             NSWorkspace.shared.open(url)
@@ -80,10 +99,62 @@ class SpotifyManager: ObservableObject {
                     self?.refreshToken = json["refresh_token"] as? String
                     self?.isAuthenticated = true
                     
-                    // Trigger fullscreen after successful authentication
-                    if let window = NSApplication.shared.windows.first {
-                        window.toggleFullScreen(nil)
+                    // Store credentials
+                    UserDefaults.standard.set(accessToken, forKey: "SpotifyAuthToken")
+                    if let refreshToken = json["refresh_token"] as? String {
+                        UserDefaults.standard.set(refreshToken, forKey: "SpotifyRefreshToken")
                     }
+                }
+            } else if let error = error {
+                print("Error exchanging code for token: \(error)")
+            }
+        }.resume()
+    }
+    
+    private func refreshAccessToken() {
+        guard let refreshToken = refreshToken,
+              let url = URL(string: "https://accounts.spotify.com/api/token") else {
+            isAuthenticated = false
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        
+        let authString = "\(SpotifyManager.clientId):\(SpotifyManager.clientSecret)"
+            .data(using: .utf8)?
+            .base64EncodedString()
+        
+        request.setValue("Basic \(authString ?? "")", forHTTPHeaderField: "Authorization")
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        
+        let bodyParams = [
+            "grant_type": "refresh_token",
+            "refresh_token": refreshToken
+        ]
+        
+        request.httpBody = bodyParams
+            .map { "\($0.key)=\($0.value)" }
+            .joined(separator: "&")
+            .data(using: .utf8)
+        
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            if let data = data,
+               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let accessToken = json["access_token"] as? String {
+                DispatchQueue.main.async {
+                    self?.authToken = accessToken
+                    UserDefaults.standard.set(accessToken, forKey: "SpotifyAuthToken")
+                    if let newRefreshToken = json["refresh_token"] as? String {
+                        self?.refreshToken = newRefreshToken
+                        UserDefaults.standard.set(newRefreshToken, forKey: "SpotifyRefreshToken")
+                    }
+                }
+            } else {
+                DispatchQueue.main.async {
+                    self?.isAuthenticated = false
+                    UserDefaults.standard.removeObject(forKey: "SpotifyAuthToken")
+                    UserDefaults.standard.removeObject(forKey: "SpotifyRefreshToken")
                 }
             }
         }.resume()
@@ -91,27 +162,59 @@ class SpotifyManager: ObservableObject {
     
     private func updateNowPlaying() {
         guard isAuthenticated, let authToken = authToken,
-              let url = URL(string: "https://api.spotify.com/v1/me/player/currently-playing") else { return }
+              let url = URL(string: "https://api.spotify.com/v1/me/player/currently-playing") else {
+            return
+        }
         
         var request = URLRequest(url: url)
         request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
         
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
-            guard let data = data,
-                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return }
-            
             DispatchQueue.main.async {
-                if let item = json["item"] as? [String: Any],
-                   let name = item["name"] as? String,
-                   let artists = item["artists"] as? [[String: Any]],
-                   let artistName = artists.first?["name"] as? String {
-                    self?.currentTrack = (title: name, artist: artistName)
-                    self?.isPlaying = json["is_playing"] as? Bool ?? false
-                } else {
-                    self?.currentTrack = nil
-                    self?.isPlaying = false
+                guard let self = self else { return }
+                
+                if let httpResponse = response as? HTTPURLResponse {
+                    switch httpResponse.statusCode {
+                    case 204:
+                        // No content - no active playback
+                        self.currentTrack = nil
+                        self.isPlaying = false
+                    case 401:
+                        // Unauthorized - token expired
+                        self.refreshAccessToken()
+                    case 200:
+                        // Success - parse the response
+                        guard let data = data,
+                              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                            return
+                        }
+                        
+                        if let item = json["item"] as? [String: Any],
+                           let name = item["name"] as? String,
+                           let artists = item["artists"] as? [[String: Any]],
+                           let artistName = artists.first?["name"] as? String {
+                            self.currentTrack = (title: name, artist: artistName)
+                            self.isPlaying = json["is_playing"] as? Bool ?? false
+                        }
+                    default:
+                        print("Unexpected status code: \(httpResponse.statusCode)")
+                    }
                 }
             }
         }.resume()
     }
-} 
+    
+    func signOut() {
+        isAuthenticated = false
+        authToken = nil
+        refreshToken = nil
+        currentTrack = nil
+        isPlaying = false
+        UserDefaults.standard.removeObject(forKey: "SpotifyAuthToken")
+        UserDefaults.standard.removeObject(forKey: "SpotifyRefreshToken")
+    }
+    
+    deinit {
+        timer?.invalidate()
+    }
+}
