@@ -33,7 +33,7 @@ class BlobState: ObservableObject {
         let screenWidth = NSScreen.main?.frame.width ?? 800
         let screenHeight = NSScreen.main?.frame.height ?? 600
         
-        blobs = (0..<12).map { _ in
+        blobs = (0..<20).map { _ in
             Blob(
                 position: CGPoint(
                     x: CGFloat.random(in: 0...screenWidth),
