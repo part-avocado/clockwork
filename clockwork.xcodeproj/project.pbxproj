@@ -316,7 +316,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				MARKETING_VERSION = 1.3.2a;
+				MARKETING_VERSION = 1.3.2b;
 				PRODUCT_BUNDLE_IDENTIFIER = com.penguinstudios.clockwork;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
