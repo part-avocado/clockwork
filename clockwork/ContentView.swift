@@ -163,7 +163,7 @@ struct ContentView: View {
                                 Image("SpotifyLogo")
                                     .foregroundColor(.white.opacity(0.8))
                                     .font(.system(size: 20))
-                                Text("Play some music on Spotify for it to show up here")
+                                Text("Nothing's playing on Spotify. :(")
                                     .font(.system(size: 20, weight: .regular))
                                     .foregroundColor(.white.opacity(0.8))
                                     .multilineTextAlignment(.center)
