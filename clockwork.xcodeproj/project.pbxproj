@@ -10,9 +10,22 @@
 		1A58C8922D5E8ABE00AE6BA1 /* clockwork.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = clockwork.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		1A3D7A5D2D60DA3400F1F858 /* Exceptions for "clockwork" folder in "clockwork" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 1A58C8912D5E8ABE00AE6BA1 /* clockwork */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		1A58C8942D5E8ABE00AE6BA1 /* clockwork */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1A3D7A5D2D60DA3400F1F858 /* Exceptions for "clockwork" folder in "clockwork" target */,
+			);
 			path = clockwork;
 			sourceTree = "<group>";
 		};

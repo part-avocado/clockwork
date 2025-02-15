@@ -14,7 +14,7 @@ struct ModernButton: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 8) {
-                Image(systemName: "music.note")
+                Image("SpotifyLogo")
                 Text(title)
             }
             .font(.system(size: 18, weight: .medium))
@@ -150,7 +150,7 @@ struct ContentView: View {
                             }
                         } else if let track = spotifyManager.currentTrack, spotifyManager.isPlaying {
                             HStack(spacing: 8) {
-                                Image(systemName: "music.note.list")
+                                Image("SpotifyLogo")
                                     .foregroundColor(.white)
                                     .font(.system(size: 20))
                                 Text("\(track.title) • \(track.artist)")
@@ -160,7 +160,7 @@ struct ContentView: View {
                             }
                         } else {
                             HStack(spacing: 8) {
-                                Image(systemName: "music.note.list")
+                                Image("SpotifyLogo")
                                     .foregroundColor(.white.opacity(0.8))
                                     .font(.system(size: 20))
                                 Text("Play some music on Spotify for it to show up here")
